@@ -275,3 +275,41 @@ test "parses lists" {
         try testing.expect(subsub.sublist == null);
     }
 }
+
+test "parses embeds" {
+    const src =
+        \\@ foo.png
+        \\@ bar.wav it works
+        \\@ baz.svg **this works too**
+    ;
+
+    const heap = std.heap.page_allocator;
+    const riv = try rivit.parse(heap, src);
+
+    try testing.expectEqual(riv.lines.items.len, 3);
+
+    const first = riv.lines.items[0];
+    try testing.expect(first == .embed);
+    try testing.expectEqualSlices(u8, first.embed.path, "foo.png");
+    try testing.expect(first.embed.alt_text == null);
+
+    const second = riv.lines.items[1];
+    try testing.expect(second == .embed);
+    try testing.expectEqualSlices(u8, second.embed.path, "bar.wav");
+    try testing.expect(second.embed.alt_text != null);
+    if (second.embed.alt_text) |alt| {
+        try testing.expectEqual(alt.items.len, 1);
+        try testing.expect(alt.items[0] == .unstyled);
+        try testing.expectEqualSlices(u8, alt.items[0].unstyled, "it works");
+    }
+
+    const third = riv.lines.items[2];
+    try testing.expect(third == .embed);
+    try testing.expectEqualSlices(u8, third.embed.path, "baz.svg");
+    try testing.expect(third.embed.alt_text != null);
+    if (third.embed.alt_text) |alt| {
+        try testing.expectEqual(alt.items.len, 1);
+        try testing.expect(alt.items[0] == .bold);
+        try testing.expectEqualSlices(u8, alt.items[0].bold, "this works too");
+    }
+}

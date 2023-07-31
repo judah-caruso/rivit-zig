@@ -157,8 +157,8 @@ pub fn parse(allocator: mem.Allocator, source: []const u8) !Rivit {
             '@' => {
                 line = line[1..]; // remove '@'
 
-                var path: []const u8 = undefined;
-                var alt: []const u8 = undefined;
+                var path: []const u8 = "";
+                var alt: []const u8 = "";
 
                 line = mem.trimLeft(u8, line, whitespace);
                 if (mem.indexOf(u8, line, " ")) |idx| {
